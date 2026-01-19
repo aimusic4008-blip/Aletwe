@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Plus, UtensilsCrossed, X, Clock } from 'lucide-react';
 import { useFoodOrderSession, FoodItem } from '../contexts/FoodOrderSession';
@@ -9,6 +9,7 @@ import { mockDeliveryAddresses, getDeliveryAddressSuggestions } from '../data/mo
 
 export function FoodiesRoute() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { address: currentLocation, loading: locationLoading } = useGeolocation();
   const {
     cartItems,
@@ -41,6 +42,12 @@ export function FoodiesRoute() {
     }
   }, [cartItems.length, navigate]);
 
+  useEffect(() => {
+    if (location.state?.highlightCurrentLocation) {
+      setActiveStopInput(null);
+    }
+  }, [location.state]);
+
   const handleAddStop = () => {
     if (!canAddStop()) return;
 
@@ -66,7 +73,7 @@ export function FoodiesRoute() {
 
   const handleGoToDelivery = () => {
     removeStopsWithoutFoodOrAddress();
-    console.log('Navigate to delivery selection page');
+    navigate('/delivery-selection');
   };
 
   const currentLocationFoods = getCurrentLocationFoods();
@@ -90,7 +97,11 @@ export function FoodiesRoute() {
         <div className="relative mb-3">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-blue-500 rounded-full flex-shrink-0"></div>
-            <div className="flex-1 relative flex items-center bg-gray-100 rounded-xl px-4 py-3">
+            <div className={`flex-1 relative flex items-center rounded-xl px-4 py-3 transition-all ${
+              location.state?.highlightCurrentLocation
+                ? 'bg-white border-2 border-green-500 ring-2 ring-green-500/20'
+                : 'bg-gray-100'
+            }`}>
               <input
                 type="text"
                 value={deliveryLocation}
